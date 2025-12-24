@@ -4,6 +4,7 @@ nixPkgs = ["nodejs-18_x", "python310", "python310Packages.pip", "python310Packag
 [phases.install]
 cmds = [
   "bash cleanup-large-files.sh",
+  "bash download-models.sh",
   "npm install --production",
   "npm cache clean --force",
   "python3 -m venv --without-pip venv || python3 -m venv venv",
