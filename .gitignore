@@ -31,6 +31,40 @@ ENV/
 *.p
 *.dat
 *.model
+*.hdf5
+
+# Large documentation and presentation files
+**/00-Presentation/**
+**/Resources/**
+**/*.pdf
+**/*.docx
+**/*.pages
+
+# Notebooks (not needed in production)
+**/*.ipynb
+**/.ipynb_checkpoints/
+
+# Large image files (keep only essential)
+**/Images/**
+**/imgs/**
+!**/src/haarcascade_frontalface_default.xml
+
+# Data files
+**/Data/**
+**/data/**
+*.csv
+*.db
+
+# Audio/video files
+*.wav
+*.mp3
+*.mp4
+*.avi
+*.gif
+
+# Saved models directories
+**/saved_models/**
+**/Models/**
 
 # Uploads and temporary files
 uploads/

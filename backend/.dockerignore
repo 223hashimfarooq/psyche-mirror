@@ -1,0 +1,83 @@
+# Exclude large files from Docker build
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Model files
+*.h5
+*.hdf5
+*.pkl
+*.p
+*.dat
+*.model
+
+# Documentation
+**/00-Presentation/
+**/Resources/
+**/*.pdf
+**/*.docx
+**/*.pages
+
+# Notebooks
+**/*.ipynb
+**/.ipynb_checkpoints/
+
+# Images (except essential)
+**/Images/
+**/imgs/
+!**/src/haarcascade_frontalface_default.xml
+
+# Data files
+**/Data/
+**/data/
+*.csv
+*.db
+
+# Audio/video
+*.wav
+*.mp3
+*.mp4
+*.avi
+*.gif
+
+# Saved models
+**/saved_models/
+**/Models/
+
+# Uploads and temp
+uploads/
+temp/
+*.tmp
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+**/test/
+**/tests/
+**/*_test.py
+**/*_tests.py
+
