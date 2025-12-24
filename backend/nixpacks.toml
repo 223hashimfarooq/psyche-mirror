@@ -3,6 +3,7 @@ nixPkgs = ["nodejs-18_x", "python310", "python310Packages.pip", "python310Packag
 
 [phases.install]
 cmds = [
+  "bash cleanup-large-files.sh",
   "npm install --production",
   "npm cache clean --force",
   "python3 -m venv --without-pip venv || python3 -m venv venv",
@@ -16,7 +17,8 @@ cmds = [
   "rm -rf /tmp/get-pip.py",
   "find . -type d -name '__pycache__' -exec rm -r {} + || true",
   "find . -type f -name '*.pyc' -delete || true",
-  "find . -type f -name '*.pyo' -delete || true"
+  "find . -type f -name '*.pyo' -delete || true",
+  "du -sh . || true"
 ]
 
 [start]
