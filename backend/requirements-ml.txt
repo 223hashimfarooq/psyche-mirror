@@ -1,0 +1,7 @@
+# Heavy ML packages (install separately)
+tensorflow>=2.10.0
+tf-keras>=2.15.0
+opencv-python>=4.6.0
+librosa>=0.9.0
+matplotlib>=3.6.0
+

@@ -4,7 +4,9 @@ nixPkgs = ["nodejs-18_x", "python310"]
 [phases.install]
 cmds = [
   "npm install",
-  "pip3 install --no-cache-dir --timeout=300 -r requirements.txt || echo 'Python packages installation skipped due to timeout'"
+  "pip3 install --upgrade pip setuptools wheel",
+  "pip3 install --no-cache-dir -r requirements-core.txt",
+  "pip3 install --no-cache-dir -r requirements-ml.txt || pip3 install --no-cache-dir tensorflow-cpu>=2.10.0 opencv-python-headless>=4.6.0"
 ]
 
 [start]
