@@ -4,9 +4,10 @@ nixPkgs = ["nodejs-18_x", "python310"]
 [phases.install]
 cmds = [
   "npm install",
-  "pip3 install --upgrade pip setuptools wheel",
-  "pip3 install --no-cache-dir -r requirements-core.txt",
-  "pip3 install --no-cache-dir -r requirements-ml.txt || pip3 install --no-cache-dir tensorflow-cpu>=2.10.0 opencv-python-headless>=4.6.0"
+  "python3 -m ensurepip --upgrade || true",
+  "python3 -m pip install --upgrade pip setuptools wheel",
+  "python3 -m pip install --no-cache-dir -r requirements-core.txt",
+  "python3 -m pip install --no-cache-dir -r requirements-ml.txt || python3 -m pip install --no-cache-dir tensorflow-cpu>=2.10.0 opencv-python-headless>=4.6.0"
 ]
 
 [start]
