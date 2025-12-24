@@ -12,5 +12,5 @@ cmds = [
 ]
 
 [start]
-cmd = ". venv/bin/activate && node server.js"
+cmd = "bash start.sh"
 
