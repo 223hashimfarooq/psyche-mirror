@@ -4,12 +4,13 @@ nixPkgs = ["nodejs-18_x", "python310", "python310Packages.pip", "python310Packag
 [phases.install]
 cmds = [
   "npm install",
-  "python3 -m venv venv",
+  "python3 -m venv --without-pip venv || python3 -m venv venv",
   "source venv/bin/activate",
-  "which pip || which pip3",
-  "pip install --upgrade pip setuptools wheel || pip3 install --upgrade pip setuptools wheel",
-  "pip install --no-cache-dir -r requirements-core.txt || pip3 install --no-cache-dir -r requirements-core.txt",
-  "pip install --no-cache-dir -r requirements-ml.txt || pip3 install --no-cache-dir -r requirements-ml.txt || pip install --no-cache-dir tensorflow-cpu>=2.10.0 opencv-python-headless>=4.6.0 || pip3 install --no-cache-dir tensorflow-cpu>=2.10.0 opencv-python-headless>=4.6.0"
+  "curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py",
+  "venv/bin/python3 /tmp/get-pip.py --break-system-packages || venv/bin/python3 /tmp/get-pip.py",
+  "venv/bin/pip install --upgrade pip setuptools wheel",
+  "venv/bin/pip install --no-cache-dir -r requirements-core.txt",
+  "venv/bin/pip install --no-cache-dir -r requirements-ml.txt || venv/bin/pip install --no-cache-dir tensorflow-cpu>=2.10.0 opencv-python-headless>=4.6.0"
 ]
 
 [start]
