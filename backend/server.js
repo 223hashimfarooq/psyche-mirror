@@ -70,6 +70,22 @@ app.use('/api/notifications', notificationEnhancedRoutes);
 app.use('/api/emergency-alert', emergencyAlertRoutes);
 app.use('/api/voice', voiceAssistantRoutes);
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'PsycheMirror API is running',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      emotions: '/api/emotions',
+      therapy: '/api/therapy'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -79,19 +95,41 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    error: 'Something went wrong!',
-    message: err.message 
+// 404 handler for undefined routes
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.path} not found`,
+    availableRoutes: [
+      'GET /',
+      'GET /api/health',
+      'POST /api/auth/register',
+      'POST /api/auth/login',
+      '/api/emotions',
+      '/api/therapy',
+      '/api/users'
+    ]
   });
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err.stack);
+  res.status(err.status || 500).json({ 
+    error: 'Something went wrong!',
+    message: err.message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
+// Initialize database connection
+const pool = require('./config/database');
+
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 PsycheMirror API server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`📊 Health check: http://0.0.0.0:${PORT}/api/health`);
+  console.log(`🌐 Server listening on: 0.0.0.0:${PORT}`);
   
   // Start cron job for processing scheduled notifications (runs every minute)
   cron.schedule('* * * * *', async () => {
@@ -103,6 +141,26 @@ app.listen(PORT, () => {
   });
   
   console.log('⏰ Scheduled notifications cron job started (runs every minute)');
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('❌ Server error:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+  }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    pool.end(() => {
+      console.log('Database pool closed');
+      process.exit(0);
+    });
+  });
 });
 
 module.exports = app;
