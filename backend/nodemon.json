@@ -1,0 +1,20 @@
+{
+  "watch": [
+    "server.js",
+    "routes",
+    "config"
+  ],
+  "ignore": [
+    "temp/**",
+    "uploads/**",
+    "**/*.ipynb",
+    "**/*.h5",
+    "**/*.pkl",
+    "**/*.dat"
+  ],
+  "ext": "js,json",
+  "execMap": {
+    "js": "node"
+  }
+}
+

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity & Therapy Recommendations</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-heart"></i> Activity & Therapy Recommendations</h1>
+                <p>Personalized therapeutic suggestions based on your emotional state</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Emotional State Input -->
+            <section class="emotional-state-section">
+                <div class="card">
+                    <h2><i class="fas fa-brain"></i> Current Emotional State</h2>
+                    <div class="input-group">
+                        <label for="emotionalState">How are you feeling right now?</label>
+                        <select id="emotionalState" class="form-select">
+                            <option value="">Select your emotional state</option>
+                            <option value="anxious">Anxious</option>
+                            <option value="depressed">Depressed</option>
+                            <option value="stressed">Stressed</option>
+                            <option value="angry">Angry</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="intensity">Intensity Level</label>
+                        <select id="intensity" class="form-select">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <button id="getRecommendations" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Get Recommendations
+                    </button>
+                </div>
+            </section>
+
+            <!-- Recommendations Display -->
+            <section id="recommendationsSection" class="recommendations-section" style="display: none;">
+                <div class="card">
+                    <h2><i class="fas fa-lightbulb"></i> Personalized Recommendations</h2>
+                    <div id="recommendationsContent"></div>
+                </div>
+            </section>
+
+            <!-- Activity Types -->
+            <section id="activityTypesSection" class="activity-types-section" style="display: none;">
+                <div class="card">
+                    <h2><i class="fas fa-tasks"></i> Choose Your Activity</h2>
+                    <div class="activity-grid">
+                        <div class="activity-card" data-type="relaxation">
+                            <div class="activity-icon">
+                                <i class="fas fa-spa"></i>
+                            </div>
+                            <h3>Relaxation Activities</h3>
+                            <p>Deep breathing, meditation, and muscle relaxation</p>
+                            <button class="btn btn-secondary">Start Activity</button>
+                        </div>
+                        <div class="activity-card" data-type="mindfulness">
+                            <div class="activity-icon">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <h3>Mindfulness Exercises</h3>
+                            <p>Present-moment awareness and meditation</p>
+                            <button class="btn btn-secondary">Start Exercise</button>
+                        </div>
+                        <div class="activity-card" data-type="cbt">
+                            <div class="activity-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h3>CBT Techniques</h3>
+                            <p>Cognitive behavioral therapy methods</p>
+                            <button class="btn btn-secondary">View Techniques</button>
+                        </div>
+                        <div class="activity-card" data-type="journaling">
+                            <div class="activity-icon">
+                                <i class="fas fa-pen"></i>
+                            </div>
+                            <h3>Journaling Prompts</h3>
+                            <p>Reflective writing exercises</p>
+                            <button class="btn btn-secondary">Get Prompts</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Activity Display -->
+            <section id="activityDisplaySection" class="activity-display-section" style="display: none;">
+                <div class="card">
+                    <div class="activity-header">
+                        <h2 id="activityTitle"></h2>
+                        <button id="closeActivity" class="btn btn-close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="activityContent"></div>
+                    <div class="activity-footer">
+                        <div class="timer" id="timer">
+                            <i class="fas fa-clock"></i>
+                            <span id="timeDisplay">00:00</span>
+                        </div>
+                        <button id="startActivity" class="btn btn-success">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                        <button id="pauseActivity" class="btn btn-warning" style="display: none;">
+                            <i class="fas fa-pause"></i> Pause
+                        </button>
+                        <button id="stopActivity" class="btn btn-danger" style="display: none;">
+                            <i class="fas fa-stop"></i> Stop
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Multimedia Support -->
+            <section id="multimediaSection" class="multimedia-section" style="display: none;">
+                <div class="card">
+                    <h2><i class="fas fa-images"></i> Calming Visuals</h2>
+                    <div class="multimedia-content">
+                        <div class="nature-animation" id="natureAnimation">
+                            <div class="floating-leaves">
+                                <div class="leaf leaf-1"></div>
+                                <div class="leaf leaf-2"></div>
+                                <div class="leaf leaf-3"></div>
+                                <div class="leaf leaf-4"></div>
+                                <div class="leaf leaf-5"></div>
+                            </div>
+                        </div>
+                        <div class="breathing-guide" id="breathingGuide" style="display: none;">
+                            <div class="breathing-circle">
+                                <div class="breathing-text">Breathe In</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Feedback Section -->
+            <section id="feedbackSection" class="feedback-section" style="display: none;">
+                <div class="card">
+                    <h2><i class="fas fa-comment"></i> How was your experience?</h2>
+                    <div class="feedback-form">
+                        <div class="rating">
+                            <label>Rate your experience:</label>
+                            <div class="stars">
+                                <i class="fas fa-star" data-rating="1"></i>
+                                <i class="fas fa-star" data-rating="2"></i>
+                                <i class="fas fa-star" data-rating="3"></i>
+                                <i class="fas fa-star" data-rating="4"></i>
+                                <i class="fas fa-star" data-rating="5"></i>
+                            </div>
+                        </div>
+                        <div class="feedback-text">
+                            <label for="feedbackText">Additional comments:</label>
+                            <textarea id="feedbackText" placeholder="Tell us how this activity helped you..."></textarea>
+                        </div>
+                        <button id="submitFeedback" class="btn btn-primary">Submit Feedback</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 Activity & Therapy Recommendations Module - FYP Project</p>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading recommendations...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
