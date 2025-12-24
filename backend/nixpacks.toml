@@ -1,16 +1,15 @@
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "python310", "python310Packages.setuptools", "python310Packages.wheel"]
+nixPkgs = ["nodejs-18_x", "python310", "python310Packages.pip", "python310Packages.setuptools", "python310Packages.wheel"]
 
 [phases.install]
 cmds = [
   "npm install",
-  "curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py",
-  "python3 /tmp/get-pip.py",
-  "python3 -m pip install --upgrade pip setuptools wheel",
-  "python3 -m pip install --no-cache-dir -r requirements-core.txt",
-  "python3 -m pip install --no-cache-dir -r requirements-ml.txt || python3 -m pip install --no-cache-dir tensorflow-cpu>=2.10.0 opencv-python-headless>=4.6.0"
+  "python3 -m pip install --user --upgrade pip setuptools wheel",
+  "export PATH=$HOME/.local/bin:$PATH",
+  "python3 -m pip install --user --no-cache-dir -r requirements-core.txt",
+  "python3 -m pip install --user --no-cache-dir -r requirements-ml.txt || python3 -m pip install --user --no-cache-dir tensorflow-cpu>=2.10.0 opencv-python-headless>=4.6.0"
 ]
 
 [start]
-cmd = "node server.js"
+cmd = "export PATH=$HOME/.local/bin:$PATH && node server.js"
 
