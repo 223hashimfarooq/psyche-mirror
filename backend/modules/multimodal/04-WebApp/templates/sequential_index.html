@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequential Psychological State Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            min-width: 120px;
+        }
+
+        .step.active {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid #4ecdc4;
+        }
+
+        .step.completed {
+            background: rgba(78, 205, 196, 0.3);
+        }
+
+        .step-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .step-title {
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            min-height: 500px;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .video-container {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .video-feed {
+            width: 100%;
+            max-width: 640px;
+            height: 480px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(86, 171, 47, 0.4);
+        }
+
+        .text-input-section {
+            margin-bottom: 30px;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .text-input:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .results-section {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .emotion-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .emotion-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .emotion-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .emotion-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .emotion-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            transition: width 0.5s ease;
+        }
+
+        .psychological-result {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .state-display {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #4ecdc4;
+        }
+
+        .confidence-display {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .deception-display {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .consistency-display {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+
+        .analysis-insights {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .step-indicator {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .emotion-display {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sequential Psychological State Predictor</h1>
+            <p>Step-by-step multimodal emotion analysis</p>
+        </div>
+
+        <div class="step-indicator">
+            <div class="step" id="step1">
+                <div class="step-number">1</div>
+                <div class="step-title">Video + Audio</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-number">2</div>
+                <div class="step-title">Text Input</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-number">3</div>
+                <div class="step-title">Analysis</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Step 1: Video + Audio -->
+            <div class="step-content active" id="step1-content">
+                <h2>🎥 Step 1: Face Emotion Detection + Audio Recording</h2>
+                <div class="status-message">
+                    Position your face in front of the camera. Click "Start Recording" to begin 10-second audio recording.
+                </div>
+                
+                <div class="video-container">
+                    <img src="{{ url_for('video_feed') }}" class="video-feed" alt="Live Video Feed">
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="startRecording()">🎤 Start Recording</button>
+                    <button class="btn btn-secondary" onclick="completeStep1()">✅ Complete Step 1</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Text Input -->
+            <div class="step-content" id="step2-content">
+                <h2>📝 Step 2: Text Sentiment Analysis</h2>
+                <div class="status-message">
+                    Enter your thoughts, feelings, or any text for sentiment analysis.
+                </div>
+                
+                <div class="text-input-section">
+                    <textarea 
+                        class="text-input" 
+                        id="textInput" 
+                        placeholder="Enter your thoughts, feelings, or any text for psychological analysis..."
+                    ></textarea>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="processText()">📝 Process Text</button>
+                    <button class="btn btn-secondary" onclick="completeStep2()">✅ Complete Step 2</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Analysis -->
+            <div class="step-content" id="step3-content">
+                <h2>🧠 Step 3: Psychological State Analysis</h2>
+                <div class="status-message">
+                    Click "Analyze" to combine all emotion data and predict psychological state.
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-success" onclick="analyzePsychologicalState()">🧠 Analyze Psychological State</button>
+                </div>
+                
+                <div class="results-section" id="resultsSection" style="display: none;">
+                    <div class="psychological-result">
+                        <div class="state-display" id="stateDisplay">Analyzing...</div>
+                        <div class="confidence-display" id="confidenceDisplay">Confidence: 0%</div>
+                        <div class="deception-display" id="deceptionDisplay">Deception Analysis: Unknown</div>
+                        <div class="consistency-display" id="consistencyDisplay">Consistency Score: 0%</div>
+                    </div>
+                    
+                    <div class="emotion-display" id="emotionDisplay">
+                        <!-- Emotion breakdown will be populated here -->
+                    </div>
+                    
+                    <div class="analysis-insights" id="analysisInsights">
+                        <!-- Analysis insights will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let faceEmotions = null;
+        let voiceEmotions = null;
+        let textEmotions = null;
+
+        function updateStepIndicator() {
+            // Update step indicators
+            document.querySelectorAll('.step').forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index + 1 < currentStep) {
+                    step.classList.add('completed');
+                } else if (index + 1 === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+
+            // Update step content
+            document.querySelectorAll('.step-content').forEach((content, index) => {
+                content.classList.remove('active');
+                if (index + 1 === currentStep) {
+                    content.classList.add('active');
+                }
+            });
+        }
+
+        function startRecording() {
+            fetch('/start_recording', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Recording started:', data);
+                showMessage('🎤 Audio recording started for 10 seconds...');
+            })
+            .catch(error => {
+                console.error('Error starting recording:', error);
+            });
+        }
+
+        function completeStep1() {
+            fetch('/complete_step1', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Step 1 completed:', data);
+                faceEmotions = data.face_emotions;
+                voiceEmotions = data.voice_emotions;
+                currentStep = 2;
+                updateStepIndicator();
+                showMessage('✅ Step 1 completed! Face and voice emotions captured.');
+            })
+            .catch(error => {
+                console.error('Error completing step 1:', error);
+            });
+        }
+
+        function processText() {
+            const text = document.getElementById('textInput').value;
+            
+            if (!text.trim()) {
+                showMessage('❌ Please enter some text first.');
+                return;
+            }
+
+            fetch('/process_text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'text=' + encodeURIComponent(text)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Text processed:', data);
+                textEmotions = data.text_emotions;
+                showMessage('✅ Text emotions processed successfully!');
+            })
+            .catch(error => {
+                console.error('Error processing text:', error);
+            });
+        }
+
+        function completeStep2() {
+            if (!textEmotions) {
+                showMessage('❌ Please process text first.');
+                return;
+            }
+
+            fetch('/complete_step2', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Step 2 completed:', data);
+                currentStep = 3;
+                updateStepIndicator();
+                showMessage('✅ Step 2 completed! Ready for psychological analysis.');
+            })
+            .catch(error => {
+                console.error('Error completing step 2:', error);
+            });
+        }
+
+        function analyzePsychologicalState() {
+            fetch('/analyze_psychological_state', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Analysis complete:', data);
+                displayResults(data);
+                showMessage('🎉 Psychological analysis completed!');
+            })
+            .catch(error => {
+                console.error('Error analyzing psychological state:', error);
+            });
+        }
+
+        function displayResults(data) {
+            const resultsSection = document.getElementById('resultsSection');
+            const stateDisplay = document.getElementById('stateDisplay');
+            const confidenceDisplay = document.getElementById('confidenceDisplay');
+            const deceptionDisplay = document.getElementById('deceptionDisplay');
+            const consistencyDisplay = document.getElementById('consistencyDisplay');
+            const emotionDisplay = document.getElementById('emotionDisplay');
+            const analysisInsights = document.getElementById('analysisInsights');
+            
+            // Display psychological state
+            stateDisplay.textContent = data.psychological_state.state;
+            confidenceDisplay.textContent = `Confidence: ${(data.psychological_state.confidence * 100).toFixed(1)}%`;
+            
+            // Display deception analysis
+            const deceptionType = data.psychological_state.deception_type;
+            const deceptionConfidence = (data.psychological_state.deception_confidence * 100).toFixed(1);
+            deceptionDisplay.textContent = `Deception Analysis: ${deceptionType} (${deceptionConfidence}%)`;
+            
+            // Display consistency score
+            const consistencyScore = (data.psychological_state.consistency_score * 100).toFixed(1);
+            consistencyDisplay.textContent = `Consistency Score: ${consistencyScore}%`;
+            
+            // Display emotion breakdown
+            const emotions = ['Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise'];
+            let emotionHTML = '';
+            
+            // Face emotions
+            const faceMax = Math.max(...data.face_emotions);
+            const faceIdx = data.face_emotions.indexOf(faceMax);
+            emotionHTML += `
+                <div class="emotion-card">
+                    <div class="emotion-title">Face</div>
+                    <div class="emotion-bar">
+                        <div class="emotion-fill" style="width: ${faceMax * 100}%"></div>
+                    </div>
+                    <div>${emotions[faceIdx]} (${(faceMax*100).toFixed(1)}%)</div>
+                </div>
+            `;
+            
+            // Voice emotions
+            const voiceMax = Math.max(...data.voice_emotions);
+            const voiceIdx = data.voice_emotions.indexOf(voiceMax);
+            emotionHTML += `
+                <div class="emotion-card">
+                    <div class="emotion-title">Voice</div>
+                    <div class="emotion-bar">
+                        <div class="emotion-fill" style="width: ${voiceMax * 100}%"></div>
+                    </div>
+                    <div>${emotions[voiceIdx]} (${(voiceMax*100).toFixed(1)}%)</div>
+                </div>
+            `;
+            
+            // Text emotions
+            const textMax = Math.max(...data.text_emotions);
+            const textIdx = data.text_emotions.indexOf(textMax);
+            emotionHTML += `
+                <div class="emotion-card">
+                    <div class="emotion-title">Text</div>
+                    <div class="emotion-bar">
+                        <div class="emotion-fill" style="width: ${textMax * 100}%"></div>
+                    </div>
+                    <div>${emotions[textIdx]} (${(textMax*100).toFixed(1)}%)</div>
+                </div>
+            `;
+            
+            emotionDisplay.innerHTML = emotionHTML;
+            
+            // Generate analysis insights
+            let insightsHTML = '<h4>🔍 Analysis Insights:</h4>';
+            
+            if (data.psychological_state.deception_type === 'Genuine') {
+                insightsHTML += '<p>✅ <strong>Genuine Emotions Detected:</strong> The emotions appear to be authentic and consistent across all modalities.</p>';
+            } else if (data.psychological_state.deception_type === 'Acted') {
+                insightsHTML += '<p>🎭 <strong>Acted Emotions Detected:</strong> The emotions appear to be performed or exaggerated rather than genuine.</p>';
+            } else if (data.psychological_state.deception_type === 'Deceptive') {
+                insightsHTML += '<p>⚠️ <strong>Deceptive Behavior Detected:</strong> There are inconsistencies suggesting potential deception or masking.</p>';
+            }
+            
+            if (data.psychological_state.consistency_score > 0.7) {
+                insightsHTML += '<p>📊 <strong>High Consistency:</strong> Emotions are well-aligned across face, voice, and text.</p>';
+            } else if (data.psychological_state.consistency_score > 0.4) {
+                insightsHTML += '<p>📊 <strong>Moderate Consistency:</strong> Some alignment between modalities, but some discrepancies noted.</p>';
+            } else {
+                insightsHTML += '<p>📊 <strong>Low Consistency:</strong> Significant discrepancies between modalities detected.</p>';
+            }
+            
+            // Add specific psychological state insights
+            const state = data.psychological_state.state;
+            if (state.includes('Genuine')) {
+                insightsHTML += '<p>💚 <strong>Authentic State:</strong> This appears to be the person\'s true psychological state.</p>';
+            } else if (state.includes('Acted')) {
+                insightsHTML += '<p>🎪 <strong>Performed State:</strong> This appears to be a deliberate emotional performance.</p>';
+            } else if (state.includes('Deceptive')) {
+                insightsHTML += '<p>🕵️ <strong>Masked State:</strong> The person may be hiding their true emotions.</p>';
+            }
+            
+            analysisInsights.innerHTML = insightsHTML;
+            resultsSection.style.display = 'block';
+        }
+
+        function showMessage(message) {
+            // Create a temporary message display
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(0,0,0,0.8);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                z-index: 1000;
+                font-size: 14px;
+                max-width: 300px;
+            `;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                document.body.removeChild(messageDiv);
+            }, 4000);
+        }
+
+        // Initialize
+        updateStepIndicator();
+    </script>
+</body>
+</html>
