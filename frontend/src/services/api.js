@@ -2,23 +2,35 @@
 // Use environment variable for production, fallback to localhost for development
 // IMPORTANT: REACT_APP_API_URL should be the full backend URL WITHOUT /api
 // Example: https://your-backend.railway.app (NOT https://your-backend.railway.app/api)
+// Railway variables may or may not include https://, so we handle both cases
 const getApiBaseUrl = () => {
   const envUrl = process.env.REACT_APP_API_URL;
   if (!envUrl) {
     return 'http://localhost:5000/api';
   }
+  
   // Remove trailing slash if present
-  const cleanUrl = envUrl.replace(/\/$/, '');
+  let cleanUrl = envUrl.trim().replace(/\/$/, '');
+  
+  // Add https:// if protocol is missing
+  if (!cleanUrl.match(/^https?:\/\//)) {
+    cleanUrl = `https://${cleanUrl}`;
+  }
+  
   // Add /api if not already present
-  return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+  if (!cleanUrl.endsWith('/api')) {
+    cleanUrl = `${cleanUrl}/api`;
+  }
+  
+  return cleanUrl;
 };
 
 const API_BASE_URL = getApiBaseUrl();
 
 // Log the API URL for debugging
 console.log('🔧 API Configuration:');
-console.log('  - REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
-console.log('  - API_BASE_URL:', API_BASE_URL);
+console.log('  - REACT_APP_API_URL (raw):', process.env.REACT_APP_API_URL);
+console.log('  - API_BASE_URL (final):', API_BASE_URL);
 
 class ApiService {
   constructor() {
