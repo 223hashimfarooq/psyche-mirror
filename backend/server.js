@@ -34,19 +34,34 @@ const allowedOrigins = [
   process.env.NETLIFY_URL ? `https://${process.env.NETLIFY_URL}` : null,
 ].filter(Boolean); // Remove null/undefined values
 
+// Log CORS configuration for debugging
+console.log('🌐 CORS Configuration:');
+console.log('  - Allowed origins:', allowedOrigins);
+console.log('  - FRONTEND_URL:', process.env.FRONTEND_URL);
+console.log('  - NODE_ENV:', process.env.NODE_ENV);
+
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('🌐 CORS: Request with no origin - allowing');
+      return callback(null, true);
+    }
+    
+    console.log('🌐 CORS: Request from origin:', origin);
     
     // Allow requests from allowed origins
     if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      console.log('🌐 CORS: Origin allowed');
       callback(null, true);
     } else {
       // In development, allow all origins for easier testing
       if (process.env.NODE_ENV === 'development') {
+        console.log('🌐 CORS: Development mode - allowing all origins');
         callback(null, true);
       } else {
+        console.log('🌐 CORS: Origin NOT allowed:', origin);
+        console.log('🌐 CORS: Allowed origins:', allowedOrigins);
         callback(new Error('Not allowed by CORS'));
       }
     }
