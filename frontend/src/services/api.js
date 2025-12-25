@@ -318,6 +318,77 @@ class ApiService {
     });
   }
 
+  // Analyze voice emotion (uses FormData, not JSON)
+  async analyzeVoiceEmotion(audioBlob, userId) {
+    const formData = new FormData();
+    formData.append('audio', audioBlob);
+    if (userId) {
+      formData.append('userId', userId);
+    }
+
+    const url = `${API_BASE_URL}/emotions/analyze-voice`;
+    const headers = this.getHeaders();
+    
+    // Remove Content-Type header for FormData (browser will set it with boundary)
+    delete headers['Content-Type'];
+
+    console.log('🔊 Voice Analysis: Making request to:', url);
+    console.log('🔊 Voice Analysis: User ID:', userId);
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: formData
+      });
+
+      console.log('🔊 Voice Analysis: Response status:', response.status);
+      
+      // Check if response is HTML (error page) instead of JSON
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        const htmlText = await response.text();
+        console.error('❌ Voice Analysis: Received HTML instead of JSON!');
+        console.error('❌ HTML Response (first 500 chars):', htmlText.substring(0, 500));
+        
+        const error = new Error('Server returned HTML instead of JSON. Check API URL configuration.');
+        error.response = { 
+          data: { 
+            message: 'Server returned an error page. Please check that the backend API is running.',
+            error: 'Invalid response format'
+          }, 
+          status: response.status 
+        };
+        throw error;
+      }
+
+      const data = await response.json();
+      console.log('🔊 Voice Analysis: Response data:', data);
+
+      if (!response.ok) {
+        const error = new Error(data.message || data.error || 'Voice analysis failed');
+        error.response = { 
+          data: data || { message: error.message, error: error.message }, 
+          status: response.status 
+        };
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('🔊 Voice Analysis: Request error:', error);
+      if (error.response) {
+        throw error;
+      }
+      const wrappedError = new Error(error.message || 'Network error');
+      wrappedError.response = { 
+        data: { message: error.message || 'Network error', error: error.message || 'Network error' }, 
+        status: 500 
+      };
+      throw wrappedError;
+    }
+  }
+
   // Health check
   async healthCheck() {
     return this.request('/health');

@@ -884,24 +884,13 @@ const MultiModalAnalysis = ({ onAnalysisComplete }) => {
 
   const simulateVoiceAnalysis = async (audioBlob) => {
     try {
-      const formData = new FormData();
-      formData.append('audio', audioBlob);
-      formData.append('userId', currentUser.id);
+      console.log('🔊 Voice Analysis: Starting analysis...');
+      console.log('🔊 Voice Analysis: Audio blob size:', audioBlob.size);
+      console.log('🔊 Voice Analysis: User ID:', currentUser.id);
 
-      const response = await fetch('http://localhost:5000/api/emotions/analyze-voice', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('psychemirror_token')}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Voice analysis failed');
-      }
-
-      const result = await response.json();
-      console.log('Voice API response:', result);
+      const result = await api.analyzeVoiceEmotion(audioBlob, currentUser.id);
+      
+      console.log('🔊 Voice Analysis: API response:', result);
       console.log('🔍 Voice result.data:', result.data);
       console.log('🔍 Voice emotion:', result.data?.emotion);
       console.log('🔍 Voice confidence:', result.data?.confidence);
@@ -914,9 +903,9 @@ const MultiModalAnalysis = ({ onAnalysisComplete }) => {
       }
       
       // Return the data directly from the backend response
-      return result.data;
+      return result.data || result;
     } catch (error) {
-      console.error('Voice analysis API error:', error);
+      console.error('🔊 Voice Analysis: API error:', error);
       throw error;
     }
   };

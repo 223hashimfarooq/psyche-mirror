@@ -220,23 +220,11 @@ const EmotionAnalysis = () => {
   const analyzeVoiceEmotion = async (audioData) => {
     // Use real API endpoint from backend/modules/voice-emotion
     try {
-      const formData = new FormData();
-      formData.append('audio', audioData);
-      formData.append('userId', currentUser?.id);
+      console.log('🔊 Voice Analysis: Starting analysis...');
+      console.log('🔊 Voice Analysis: Audio data size:', audioData.size);
+      console.log('🔊 Voice Analysis: User ID:', currentUser?.id);
 
-      const response = await fetch('http://localhost:5000/api/emotions/analyze-voice', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('psychemirror_token')}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Voice analysis failed');
-      }
-
-      const result = await response.json();
+      const result = await api.analyzeVoiceEmotion(audioData, currentUser?.id);
       const data = result.data || result;
       
       // Log the raw result to debug
