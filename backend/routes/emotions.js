@@ -362,23 +362,29 @@ router.post('/analyze-facial', verifyToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Facial analysis error:', error);
+    console.error('❌ Facial analysis error:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error message:', error.message);
     
-    // Provide fallback result instead of failing completely
-    const fallbackResult = {
-      emotion: 'neutral',
-      confidence: 0.5,
-      description: 'Facial analysis failed - using fallback result',
-      face_detected: false,
-      analysis_method: 'fallback',
-      error: error.message
-    };
+    // Log detailed error information for debugging
+    if (error.message.includes('timeout')) {
+      console.error('❌ Facial analysis timed out - model may not be loading correctly');
+    } else if (error.message.includes('Python')) {
+      console.error('❌ Python script execution failed - check Python environment and model files');
+    } else {
+      console.error('❌ Unexpected error during facial analysis');
+    }
     
-    console.log('Providing fallback facial analysis result:', fallbackResult);
-    res.json({
-      success: true,
-      data: fallbackResult,
-      message: 'Facial analysis completed with fallback result'
+    // Return error instead of silent fallback - let frontend handle it
+    return res.status(500).json({ 
+      success: false,
+      error: 'Facial analysis failed',
+      message: error.message,
+      details: {
+        error_type: error.name,
+        error_message: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      }
     });
   }
 });
@@ -524,7 +530,18 @@ router.post('/analyze-voice', verifyToken, upload.single('audio'), async (req, r
     });
 
   } catch (error) {
-    console.error('Voice analysis error:', error);
+    console.error('❌ Voice analysis error:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error message:', error.message);
+    
+    // Log detailed error information for debugging
+    if (error.message.includes('timeout')) {
+      console.error('❌ Voice analysis timed out - model may not be loading correctly');
+    } else if (error.message.includes('Python')) {
+      console.error('❌ Python script execution failed - check Python environment and model files');
+    } else {
+      console.error('❌ Unexpected error during voice analysis');
+    }
     
     // Clean up file on error
     if (audioFilePath && fs.existsSync(audioFilePath)) {
@@ -538,19 +555,16 @@ router.post('/analyze-voice', verifyToken, upload.single('audio'), async (req, r
       inFlightVoiceRequests.delete(requestKey);
     }
     
-    // Return a simulated fallback result to keep UI responsive
-    res.json({
-      success: true,
-      data: {
-        emotion: 'neutral',
-        confidence: 0.6,
-        method: 'fallback',
-        details: {
-          reason: error.message || 'processing_error'
-        },
-        error: null
-      },
-      message: 'Voice analysis completed with fallback result'
+    // Return error instead of silent fallback - let frontend handle it
+    return res.status(500).json({ 
+      success: false,
+      error: 'Voice analysis failed',
+      message: error.message,
+      details: {
+        error_type: error.name,
+        error_message: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      }
     });
   }
 });

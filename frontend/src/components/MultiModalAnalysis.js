@@ -351,30 +351,25 @@ const MultiModalAnalysis = ({ onAnalysisComplete }) => {
       setCurrentStep(1);
       
     } catch (err) {
-      console.error('Facial analysis error caught:', err);
-      console.error('Error message:', err.message);
-      console.error('Error stack:', err.stack);
+      console.error('❌ Facial analysis error caught:', err);
+      console.error('❌ Error message:', err.message);
+      console.error('❌ Error stack:', err.stack);
+      console.error('❌ Full error object:', err);
       
-      // Provide fallback analysis result and continue
-      const fallbackResult = {
-        emotion: 'neutral',
-        confidence: 0.5,
-        description: 'Facial analysis unavailable - using fallback result',
-        face_detected: false,
-        analysis_method: 'fallback'
-      };
+      // Check if this is a fallback result from backend
+      if (err.response && err.response.data && err.response.data.analysis_method === 'fallback') {
+        console.warn('⚠️ Backend returned fallback result - models may not be working');
+        setError('Facial analysis models are not working. Please check backend logs. Error: ' + (err.response.data.error || err.message));
+      } else {
+        // Real error - show it to user
+        const errorMessage = err.response?.data?.message || err.message || 'Facial analysis failed';
+        console.error('❌ Real error occurred:', errorMessage);
+        setError('Facial analysis failed: ' + errorMessage);
+      }
       
-      console.log('Using fallback facial analysis result:', fallbackResult);
-      setAnalysisResults(prev => ({
-        ...prev,
-        facial: fallbackResult
-      }));
-      
-      // Clear page and proceed to next step with fallback result
-      clearPage();
-      console.log('Proceeding to voice analysis with fallback facial result');
+      // Don't proceed with fallback - let user retry
       setIsAnalyzing(false);
-      setCurrentStep(1);
+      setIsFacialAnalysisInProgress(false);
     } finally {
       console.log('Finally block - clearing analysis progress (isAnalyzing already set to false)');
       analysisInProgressRef.current = false;
@@ -571,7 +566,22 @@ const MultiModalAnalysis = ({ onAnalysisComplete }) => {
       }, 0);
       
     } catch (err) {
-      setError('Voice analysis failed: ' + err.message);
+      console.error('❌ Voice analysis error caught:', err);
+      console.error('❌ Error message:', err.message);
+      console.error('❌ Error stack:', err.stack);
+      console.error('❌ Full error object:', err);
+      
+      // Check if this is a fallback result from backend
+      if (err.response && err.response.data && err.response.data.method === 'fallback') {
+        console.warn('⚠️ Backend returned fallback result - models may not be working');
+        setError('Voice analysis models are not working. Please check backend logs. Error: ' + (err.response.data.error || err.message));
+      } else {
+        // Real error - show it to user
+        const errorMessage = err.response?.data?.message || err.message || 'Voice analysis failed';
+        console.error('❌ Real error occurred:', errorMessage);
+        setError('Voice analysis failed: ' + errorMessage);
+      }
+      
       setIsAnalyzing(false);
     } finally {
       // Always reset the ref when analysis completes (success or failure)
