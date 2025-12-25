@@ -1,8 +1,24 @@
 // API service for PsycheMirror backend
 // Use environment variable for production, fallback to localhost for development
-const API_BASE_URL = process.env.REACT_APP_API_URL 
-  ? `${process.env.REACT_APP_API_URL}/api`
-  : 'http://localhost:5000/api';
+// IMPORTANT: REACT_APP_API_URL should be the full backend URL WITHOUT /api
+// Example: https://your-backend.railway.app (NOT https://your-backend.railway.app/api)
+const getApiBaseUrl = () => {
+  const envUrl = process.env.REACT_APP_API_URL;
+  if (!envUrl) {
+    return 'http://localhost:5000/api';
+  }
+  // Remove trailing slash if present
+  const cleanUrl = envUrl.replace(/\/$/, '');
+  // Add /api if not already present
+  return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Log the API URL for debugging
+console.log('🔧 API Configuration:');
+console.log('  - REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+console.log('  - API_BASE_URL:', API_BASE_URL);
 
 class ApiService {
   constructor() {
@@ -51,14 +67,55 @@ class ApiService {
     };
 
     console.log('🔑 API Service: Making request to:', url);
+    console.log('🔑 API Service: API_BASE_URL:', API_BASE_URL);
+    console.log('🔑 API Service: REACT_APP_API_URL env:', process.env.REACT_APP_API_URL);
     console.log('🔑 API Service: Request config:', config);
 
     try {
       const response = await fetch(url, config);
       console.log('🔑 API Service: Response status:', response.status);
       console.log('🔑 API Service: Response headers:', response.headers);
+      console.log('🔑 API Service: Response Content-Type:', response.headers.get('content-type'));
       
-      const data = await response.json();
+      // Check if response is HTML (error page) instead of JSON
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('text/html')) {
+        const htmlText = await response.text();
+        console.error('❌ API Service: Received HTML instead of JSON!');
+        console.error('❌ HTML Response (first 500 chars):', htmlText.substring(0, 500));
+        
+        const error = new Error('Server returned HTML instead of JSON. Check API URL configuration.');
+        error.response = { 
+          data: { 
+            message: 'Server returned an error page. Please check that the backend API is running and the REACT_APP_API_URL is correct.',
+            error: 'Invalid response format',
+            html: htmlText.substring(0, 500)
+          }, 
+          status: response.status 
+        };
+        throw error;
+      }
+      
+      // Try to parse as JSON
+      let data;
+      try {
+        const text = await response.text();
+        console.log('🔑 API Service: Response text (first 200 chars):', text.substring(0, 200));
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('❌ API Service: Failed to parse JSON:', parseError);
+        const error = new Error('Invalid JSON response from server');
+        error.response = { 
+          data: { 
+            message: 'Server returned invalid JSON. Please check the backend API.',
+            error: 'JSON parse error',
+            parseError: parseError.message
+          }, 
+          status: response.status 
+        };
+        throw error;
+      }
+      
       console.log('🔑 API Service: Response data:', data);
 
       if (!response.ok) {
