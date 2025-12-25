@@ -304,13 +304,15 @@ const MultiModalAnalysis = ({ onAnalysisComplete }) => {
         throw new Error('Invalid response from facial analysis API');
       }
       
-      // Check if this is a fallback result - if so, accept it
+      // Check if this is a fallback result - reject it and show error
       console.log('Checking analysis method:', response.analysis_method);
       console.log('Face detected:', response.face_detected);
+      console.log('Confidence:', response.confidence);
       
-      if (response.analysis_method === 'fallback') {
-        console.log('Fallback result detected - accepting and proceeding');
-        // Accept fallback results and continue
+      if (response.analysis_method === 'fallback' || response.method === 'fallback') {
+        console.error('❌ Backend returned fallback result - models are not working!');
+        console.error('❌ Fallback reason:', response.error || response.details?.reason || 'Unknown');
+        throw new Error('Facial analysis models are not working. Backend returned fallback result. Please check backend logs and ensure Python models are loaded correctly.');
       } else if (response.face_detected === false || response.face_detected === undefined || response.face_detected === null) {
         console.log('No face detected in non-fallback result, throwing error');
         const errorMessage = response.message || response.error || 'No face detected. Please ensure your face is visible and well-lit in the camera.';
@@ -325,12 +327,9 @@ const MultiModalAnalysis = ({ onAnalysisComplete }) => {
         throw new Error(response.error);
       }
       
-      // If we reach here, everything succeeded (including fallback results)
-      if (response.analysis_method === 'fallback') {
-        console.log('Using fallback facial analysis result:', response.emotion, 'with confidence:', response.confidence);
-      } else {
-        console.log('Face detected and emotion analyzed successfully:', response.emotion);
-      }
+      // If we reach here, everything succeeded (no fallback)
+      console.log('Face detected and emotion analyzed successfully:', response.emotion);
+      console.log('Confidence:', response.confidence);
       console.log('Setting analysis results...');
       setAnalysisResults(prev => ({
         ...prev,
@@ -904,6 +903,14 @@ const MultiModalAnalysis = ({ onAnalysisComplete }) => {
       console.log('🔍 Voice result.data:', result.data);
       console.log('🔍 Voice emotion:', result.data?.emotion);
       console.log('🔍 Voice confidence:', result.data?.confidence);
+      console.log('🔍 Voice method:', result.data?.method);
+      
+      // Check if this is a fallback result - reject it
+      if (result.data && (result.data.method === 'fallback' || result.data.analysis_method === 'fallback')) {
+        console.error('❌ Backend returned fallback result - models are not working!');
+        console.error('❌ Fallback reason:', result.data.error || result.data.details?.reason || 'Unknown');
+        throw new Error('Voice analysis models are not working. Backend returned fallback result. Please check backend logs and ensure Python models are loaded correctly.');
+      }
       
       // CRITICAL: Verify emotion is not being overridden
       if (result.data && result.data.emotion) {
