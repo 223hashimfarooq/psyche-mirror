@@ -56,21 +56,7 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' })); // Increase limit for file uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/emotions', emotionRoutes);
-app.use('/api/therapy', therapyRoutes);
-app.use('/api/doctors', doctorRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/sessions', sessionRoutes);
-app.use('/api/privacy', privacyRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/notifications', notificationEnhancedRoutes);
-app.use('/api/emergency-alert', emergencyAlertRoutes);
-app.use('/api/voice', voiceAssistantRoutes);
-
-// Root endpoint
+// Root endpoint (define BEFORE routes to ensure it works)
 app.get('/', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -86,7 +72,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint
+// Health check endpoint (define BEFORE routes)
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -95,8 +81,40 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 404 handler for undefined routes
+// Routes
+try {
+  console.log('📦 Loading routes...');
+  app.use('/api/auth', authRoutes);
+  app.use('/api/users', userRoutes);
+  app.use('/api/emotions', emotionRoutes);
+  app.use('/api/therapy', therapyRoutes);
+  app.use('/api/doctors', doctorRoutes);
+  app.use('/api/chat', chatRoutes);
+  app.use('/api/sessions', sessionRoutes);
+  app.use('/api/privacy', privacyRoutes);
+  app.use('/api/notifications', notificationRoutes);
+  app.use('/api/notifications', notificationEnhancedRoutes);
+  app.use('/api/emergency-alert', emergencyAlertRoutes);
+  app.use('/api/voice', voiceAssistantRoutes);
+  console.log('✅ All routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading routes:', error);
+  throw error;
+}
+
+// Error handling middleware (MUST come before 404 handler)
+app.use((err, req, res, next) => {
+  console.error('❌ Error:', err.stack);
+  res.status(err.status || 500).json({ 
+    error: 'Something went wrong!',
+    message: err.message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
+// 404 handler for undefined routes (MUST be last)
 app.use((req, res) => {
+  console.log(`⚠️  404: ${req.method} ${req.path} not found`);
   res.status(404).json({ 
     error: 'Not Found',
     message: `Route ${req.method} ${req.path} not found`,
@@ -112,35 +130,38 @@ app.use((req, res) => {
   });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
-  res.status(err.status || 500).json({ 
-    error: 'Something went wrong!',
-    message: err.message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
-});
-
 // Initialize database connection
-const pool = require('./config/database');
+let pool;
+try {
+  console.log('📊 Initializing database connection...');
+  pool = require('./config/database');
+  console.log('✅ Database connection initialized');
+} catch (error) {
+  console.error('❌ Database initialization error:', error);
+  // Don't exit - server can still start without DB for health checks
+}
 
 // Start server
+console.log(`🔧 Starting server on port ${PORT}...`);
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 PsycheMirror API server running on port ${PORT}`);
   console.log(`📊 Health check: http://0.0.0.0:${PORT}/api/health`);
   console.log(`🌐 Server listening on: 0.0.0.0:${PORT}`);
+  console.log(`✅ Server is ready to accept connections`);
   
   // Start cron job for processing scheduled notifications (runs every minute)
-  cron.schedule('* * * * *', async () => {
-    try {
-      await scheduler.processPendingNotifications();
-    } catch (error) {
-      console.error('Error processing scheduled notifications:', error);
-    }
-  });
-  
-  console.log('⏰ Scheduled notifications cron job started (runs every minute)');
+  try {
+    cron.schedule('* * * * *', async () => {
+      try {
+        await scheduler.processPendingNotifications();
+      } catch (error) {
+        console.error('Error processing scheduled notifications:', error);
+      }
+    });
+    console.log('⏰ Scheduled notifications cron job started (runs every minute)');
+  } catch (error) {
+    console.error('❌ Error starting cron job:', error);
+  }
 });
 
 // Handle server errors
@@ -156,11 +177,25 @@ process.on('SIGTERM', () => {
   console.log('SIGTERM signal received: closing HTTP server');
   server.close(() => {
     console.log('HTTP server closed');
-    pool.end(() => {
-      console.log('Database pool closed');
+    if (pool && pool.end) {
+      pool.end(() => {
+        console.log('Database pool closed');
+        process.exit(0);
+      });
+    } else {
       process.exit(0);
-    });
+    }
   });
+});
+
+// Log unhandled errors
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
 });
 
 module.exports = app;
