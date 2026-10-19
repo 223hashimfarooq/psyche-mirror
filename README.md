@@ -325,11 +325,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 👨‍💻 Author
+## 👨‍💻 Authors
 
 **Hashim Farooq**
 - GitHub: [@223hashimfarooq](https://github.com/223hashimfarooq)
 
+**Talha Adeel**
+- GitHub: [@talhatalha30talha](https://github.com/talhatalha30talha)
 ---
 
 ## 🙏 Acknowledgments
